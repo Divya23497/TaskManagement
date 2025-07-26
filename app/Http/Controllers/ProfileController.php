@@ -8,6 +8,9 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
+
 
 
 class ProfileController extends Controller
@@ -207,4 +210,37 @@ class ProfileController extends Controller
 
         return response()->json(['message' => 'Task Assigned Successfully']);
     }
+
+    public function updatePassword(Request $request)
+{
+    // ✅ Validate input
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required|confirmed|min:8',
+        'token' => 'required'
+    ]);
+
+    // $reset = DB::table('password_resets')
+    //     ->where('email', $request->email)
+    //     ->where('token', $request->token)
+    //     ->first();
+
+    // if (!$reset) {
+    //     return back()->withErrors(['token' => 'Invalid or expired token.']);
+    // }
+
+    $user = User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return back()->withErrors(['email' => 'No user found with that email.']);
+    }
+
+    $user->password = Hash::make($request->password);
+    $user->save();
+
+    // ✅ Delete the reset token after successful password reset
+    DB::table('password_resets')->where('email', $request->email)->delete();
+
+    return redirect()->route('login')->with('success', 'Password has been reset successfully.');
+}
 }

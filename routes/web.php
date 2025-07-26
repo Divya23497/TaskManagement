@@ -11,6 +11,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\DashboardController;
+use Illuminate\Http\Request;
 
 
 /*
@@ -73,7 +75,8 @@ Route::get('/', function () { return view('welcome');})->name('home');
 Route::get('/about', function () { return view('about');});
 Route::get('/contact', function () { return view('about');});
 
-Route::get('/dashboard', function () { return view('about');});
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
 Route::get('/contact', function () { return view('about');});
 Route::get('/contact', function () { return view('about');});
 
@@ -96,5 +99,25 @@ Route::get('/estimated', [ReportController::class, 'estimated'])->name('estimate
 
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+Route::get('/reset-password/{token}', function ($token, Request $request) {
+     $email = $request->query('email');
+    return view('auth.reset-password', [
+        'token' => $token,
+        'email' => $request->query('email'),
+    ]);
+})->middleware('guest')->name('password.reset');
+
+Route::get('/test-token/{token}', function ($token, Request $request) {
+    $email = $request->query('email');
+
+    return view('auth.reset-password', [
+        'token' => $token,
+        'email' => $email,
+    ]);
+})->middleware('guest')->name('password.reset');
+
+Route::post('/update-password', [ProfileController::class, 'updatePassword'])
+    ->name('custom.password.update');
 
 require __DIR__.'/auth.php';
